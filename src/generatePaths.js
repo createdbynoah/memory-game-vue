@@ -1,46 +1,65 @@
 const fs = require('fs');
 const path = require('path');
 
-// find all directories in the assets/images/cards/fronts directory
-// and create a card object for each image
+// Define paths to various image directories.
+const cardFrontImgDirectoryPath = path.join(
+  __dirname,
+  'assets/images/cards/front'
+);
+const cardBackImgDirectoryPath = path.join(
+  __dirname,
+  'assets/images/cards/back'
+);
+const avatarImgDirectoryPath = path.join(__dirname, 'assets/images/avatars/');
 
-const directoryPath = path.join(__dirname, 'assets/images/cards/fronts');
-const cards = [];
+// Define the base path for the project directory.
+const basePath = path.join(__dirname, '');
 
-fs.readdirSync(directoryPath).forEach((directory) => {
-  const directoryPath = path.join(
-    __dirname,
-    'assets/images/cards/fronts',
-    directory
-  );
-  fs.readdirSync(directoryPath).forEach((file) => {
+const getImgArray = (pathToFolder) => {
+  const imgArray = [];
+
+  // Helper function to process a file:
+  // Checks if the file is an image and then adds its path to the imgArray.
+  const processFile = (file, directory) => {
     if (/\.(jpg|jpeg|png|gif)$/i.test(file)) {
-      const imageFilePath = path.join(
-        '/src/assets/images/cards/fronts',
-        directory,
-        file
-      );
-      cards.push({ theme: directory, image: imageFilePath });
+      let imageFilePath = path.join(directory, file);
+      // Replace absolute path with relative path starting from the project directory.
+      imageFilePath = imageFilePath.replace(basePath, '/src');
+      // Extract just the parent folder name for the 'variant'.
+      const variant = path.basename(directory);
+      imgArray.push({ variant: variant, image: imageFilePath });
+    }
+  };
+
+  // Iterate over each item (file or directory) in the given path.
+  fs.readdirSync(pathToFolder).forEach((item) => {
+    // Ignore any .DS_Store files.
+    if (item === '.DS_Store') return;
+
+    const itemPath = path.join(pathToFolder, item);
+
+    // Check if the item is a directory or a file.
+    if (fs.statSync(itemPath).isDirectory()) {
+      // If it's a directory, iterate over its files and process them.
+      fs.readdirSync(itemPath).forEach((file) => {
+        processFile(file, itemPath);
+      });
+    } else {
+      // If it's a file, directly process it.
+      processFile(item, pathToFolder);
     }
   });
-});
 
-// const directoryPath = path.join(
-//   __dirname,
-//   'assets/images/cards/fronts/pokemon'
-// );
-// const cards = [];
+  // Return the populated imgArray.
+  return imgArray;
+};
 
-// fs.readdirSync(directoryPath).forEach((file) => {
-//   if (/\.(jpg|jpeg|png|gif)$/i.test(file)) {
-//     const imageFilePath = path.join(
-//       '/src/assets/images/cards/fronts/pokemon',
-//       file
-//     );
-//     // Create two identical cards for each image (for matching pairs)
-//     cards.push({ id: cards.length + 1, image: imageFilePath });
-//     cards.push({ id: cards.length + 1, image: imageFilePath });
-//   }
-// });
+// Fetch image arrays for each directory.
+const cardFronts = getImgArray(cardFrontImgDirectoryPath);
+const cardBacks = getImgArray(cardBackImgDirectoryPath);
+const avatars = getImgArray(avatarImgDirectoryPath);
 
-fs.writeFileSync('cardFrontImages.json', JSON.stringify(cards));
+// Write image arrays to their respective JSON files.
+fs.writeFileSync('cardFrontImages.json', JSON.stringify(cardFronts));
+fs.writeFileSync('cardBackImages.json', JSON.stringify(cardBacks));
+fs.writeFileSync('avatarImages.json', JSON.stringify(avatars));
