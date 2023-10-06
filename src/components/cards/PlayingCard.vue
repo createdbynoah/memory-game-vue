@@ -1,10 +1,10 @@
 <template>
   <div class="card" :class="{ flipped: showCardFront }" @click="flipCard">
     <div class="card__back">
-      <img :src="images.back" alt="" draggable="false" />
+      <img :src="backImg" alt="" draggable="false" />
     </div>
     <div class="card__front">
-      <img :src="images.front" alt="" draggable="false" />
+      <img :src="frontImg.image" alt="" draggable="false" />
     </div>
   </div>
 </template>
@@ -13,8 +13,12 @@
 import { ref, defineProps } from 'vue';
 
 const props = defineProps({
-  images: {
+  frontImg: {
     type: Object,
+    required: true,
+  },
+  backImg: {
+    type: String,
     required: true,
   },
   timeout: {
@@ -52,6 +56,9 @@ const flipCard = () => {
 
 .card__front,
 .card__back {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
   height: 100%;
   position: absolute;
@@ -79,11 +86,20 @@ const flipCard = () => {
   transform: rotateY(0deg);
 }
 
-.card__front img,
 .card__back img {
   width: 100%;
   height: 100%;
+  overflow: hidden;
   object-fit: cover;
+  border-radius: 10px;
+}
+
+.card__front img {
+  /* object-fit: contain; */
+  width: auto;
+  height: auto;
+  max-height: 100%;
+  max-width: 100%;
   border-radius: 10px;
 }
 </style>
